@@ -41,14 +41,17 @@ Acesse: http://localhost:3000
 
 ### 1. Layout Principal
 - **Painel de Controles** (esquerda): Play/Stop, velocidade, tamanho da fonte, tema, ocultar tabs
-- **Painel da Cifra** (centro): cifra com acordes coloridos e seções destacadas
+- **Painel da Cifra** (centro): cifra com acordes coloridos, seções destacadas, tom e capo
 - **Painel de Acordes** (colapsável): diagramas SVG dos acordes detectados na música
 - **Player YouTube** (direita): vídeo da música embarcado
-- **Header**: título, artista, inputs de URL, seletor de músicas
+- **Header**: logo, seletor de músicas com busca, inputs de URL do CifraClub e YouTube
+- **Painéis redimensionáveis**: arraste as bordas entre os painéis para ajustar larguras
+- **Duplo clique para editar**: clique duas vezes na cifra para entrar no modo de edição
 
 ### 2. Parser do CifraClub
-- Cola a URL do CifraClub e clica "Parse"
-- Extrai automaticamente: título, artista, cifra completa
+- Cola a URL do CifraClub e pressiona Enter
+- Modal de loading com progresso em etapas (buscando página, extraindo dados, salvando...)
+- Extrai automaticamente: título, artista, tom, capo e cifra completa
 - Busca o vídeo no YouTube usando a API (título + artista)
 - Carrega o vídeo automaticamente no player
 
@@ -61,7 +64,9 @@ Acesse: http://localhost:3000
 ### 4. Diagramas de Acordes
 - Detecta automaticamente os acordes únicos da cifra
 - Mostra diagramas SVG com posição dos dedos
-- Painel colapsável entre a cifra e o vídeo
+- Painel colapsável e redimensionável entre a cifra e o vídeo
+- **Colunas dinâmicas**: acordes se reorganizam automaticamente conforme a largura do painel (2, 3, 4+ colunas)
+- **Tamanho fixo**: diagramas mantêm tamanho consistente independente da largura
 - Banco de dados com 100+ acordes (maiores, menores, 7, 9, sus, dim, aug, etc.)
 
 ### 5. Autoscroll
@@ -75,11 +80,11 @@ Acesse: http://localhost:3000
 - Útil para quem ainda não sabe ler tabs e quer pular essas partes
 - Preferência salva por música
 
-### 7. Temas
-- Tema claro (padrão)
-- Tema escuro
+### 7. Temas e Persistência de UI
+- Tema claro (padrão) e tema escuro
 - Botão "Dark/Light" para alternar
-- Todas as cores se adaptam ao tema
+- Todas as cores se adaptam ao tema (incluindo diagramas de acordes)
+- **Preferências salvas**: tema, larguras dos painéis e última música aberta são persistidos no localStorage
 
 ### 8. Auto-Save
 - Salva automaticamente após parse
@@ -97,6 +102,8 @@ interface Song {
   content: string         // A cifra em si
   cifraClubUrl?: string   // Link do CifraClub de onde veio
   youtubeUrl?: string     // Link do YouTube
+  tone?: string           // Tom da música (ex: "Am", "G")
+  capo?: number           // Casa do capotraste
   speed: number           // Velocidade do scroll salva
   fontSize: number        // Tamanho da fonte salvo
   hideTabs?: boolean      // Esconder tablaturas
@@ -128,13 +135,12 @@ Diagramas de acordes:
 ### `server/api/parse-cifra.ts`
 API server-side para scraping:
 - Faz fetch da página do CifraClub com headers realistas
-- Extrai título, artista e cifra com regex
+- Extrai título, artista, tom, capo e cifra com regex
 - Busca vídeo no YouTube via API
 
 ## Possíveis Melhorias Futuras
 
 - Importar/exportar músicas (JSON backup)
-- Busca nas músicas salvas
 - Ordenação (por data, alfabética)
 - Responsividade mobile
 - Transpor tom da cifra
