@@ -2,10 +2,10 @@
   <div class="relative" ref="container">
     <button
       @click="isOpen = !isOpen"
-      class="px-3 py-2 border rounded text-sm focus:outline-none flex items-center gap-2 min-w-[200px]"
+      class="w-full px-3 py-2 border rounded text-sm focus:outline-none flex items-center gap-2 overflow-hidden"
       :class="isDark ? 'bg-gray-700 border-gray-600 text-white hover:bg-gray-600' : 'bg-white border-gray-300 text-gray-900 hover:bg-gray-50'"
     >
-      <span class="flex-1 text-left truncate">
+      <span class="flex-1 text-left truncate min-w-0">
         {{ selectedSong ? `${selectedSong.title} - ${selectedSong.artist}` : '-- Selecione uma música --' }}
       </span>
       <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

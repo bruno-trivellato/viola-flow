@@ -93,8 +93,8 @@
           class="h-6 w-6"
         />
 
-        <!-- Song Selector (flex-1 to take remaining space) -->
-        <div class="flex-1">
+        <!-- Song Selector (flex-1 to take remaining space, min-w-0 allows shrinking) -->
+        <div class="flex-1 min-w-0">
           <SongSelector
             :songs="songs"
             :selectedId="selectedSongId"
@@ -107,16 +107,13 @@
         <!-- Add song button -->
         <button
           @click="showMobileAddSong = true"
-          class="p-2 rounded-lg"
+          class="p-2 rounded-lg flex-shrink-0"
           :class="isDark ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
         </button>
-
-        <!-- Settings Menu -->
-        <SettingsMenu :isDark="isDark" @openImport="showImportModal = true" />
       </div>
 
       <!-- Main Content - Desktop -->
@@ -240,6 +237,7 @@
           @update:hideTabs="hideTabs = $event"
           @showChords="showMobileChords = true"
           @toggleMiniPlayer="showMobileVideo = !showMobileVideo"
+          @openImport="showImportModal = true"
         />
 
         <!-- Mobile Mini Video Player (PiP style) -->
