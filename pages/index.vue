@@ -24,7 +24,18 @@
       @overwrite="overwriteExistingRow"
     />
 
-    <div class="h-full flex flex-col rounded-xl overflow-hidden">
+    <!-- Loading placeholder while detecting layout -->
+    <div v-if="!isLayoutReady" class="h-full flex items-center justify-center">
+      <div class="animate-pulse">
+        <img
+          :src="isDark ? '/logo-dark.png' : '/logo.png'"
+          alt="Viola Flow"
+          class="h-12 w-12 opacity-50"
+        />
+      </div>
+    </div>
+
+    <div v-else class="h-full flex flex-col rounded-xl overflow-hidden">
       <!-- Top Bar - Desktop -->
       <div v-if="!isMobile" class="flex items-center gap-3 p-3 border-b flex-wrap transition-colors duration-200" :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300 shadow-sm'">
         <!-- App Logo -->
@@ -440,12 +451,14 @@ const getScrollElement = () => {
 
 // Mobile detection
 const isMobile = ref(false)
+const isLayoutReady = ref(false)
 const showMobileVideo = ref(false)
 const showMobileChords = ref(false)
 const showMobileAddSong = ref(false)
 
 const checkMobile = () => {
   isMobile.value = window.innerWidth < 768
+  isLayoutReady.value = true
 }
 
 
@@ -568,6 +581,10 @@ watch(youtubeUrl, () => {
 
 // Load on mount
 onMounted(async () => {
+  // Mobile detection first to avoid layout flash
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+
   loadPreferences()
   await loadSongs()
 
@@ -575,10 +592,6 @@ onMounted(async () => {
   if (lastSongId && songs.value.some(s => s.id === lastSongId)) {
     selectSong(lastSongId)
   }
-
-  // Mobile detection
-  checkMobile()
-  window.addEventListener('resize', checkMobile)
 
   // Keyboard shortcut
   window.addEventListener('keydown', (e) => {
