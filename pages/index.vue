@@ -3,8 +3,15 @@
     <div class="h-full flex flex-col rounded-xl overflow-hidden">
     <!-- Top Bar -->
     <div class="flex items-center gap-3 p-3 border-b flex-wrap transition-colors duration-200" :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300 shadow-sm'">
-      <!-- App Title -->
-      <span class="font-bold text-lg" :class="isDark ? 'text-white' : 'text-gray-800'">Cifras Bruno</span>
+      <!-- App Logo -->
+      <div class="flex items-center gap-2">
+        <img
+          :src="isDark ? '/logo-dark.png' : '/logo.png'"
+          alt="Viola Flow"
+          class="h-8 w-8"
+        />
+        <span class="font-bold text-lg" :class="isDark ? 'text-white' : 'text-gray-800'">Viola Flow</span>
+      </div>
 
       <span :class="isDark ? 'text-gray-600' : 'text-gray-300'">|</span>
 

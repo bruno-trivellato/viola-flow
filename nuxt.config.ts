@@ -4,10 +4,13 @@ export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss'],
   app: {
     head: {
-      title: 'Chords Autoscroll',
+      title: 'Viola Flow',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' }
+      ],
+      link: [
+        { rel: 'icon', type: 'image/png', href: '/favicon.png' }
       ]
     }
   }
