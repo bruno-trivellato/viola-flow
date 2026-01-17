@@ -18,8 +18,8 @@
 
     <div class="text-center text-xs mt-2" :class="isDark ? 'text-gray-500' : 'text-gray-600'">Speed</div>
     <div class="text-center text-lg font-bold">{{ speed }}</div>
-    <button @click="$emit('changeSpeed', 10)" class="py-2 rounded" :class="isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'">+</button>
-    <button @click="$emit('changeSpeed', -10)" class="py-2 rounded" :class="isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'">-</button>
+    <button @click="$emit('changeSpeed', SPEED_INCREMENT)" class="py-2 rounded" :class="isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'">+</button>
+    <button @click="$emit('changeSpeed', -SPEED_INCREMENT)" class="py-2 rounded" :class="isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'">-</button>
 
     <div class="text-center text-xs mt-2" :class="isDark ? 'text-gray-500' : 'text-gray-600'">Font</div>
     <button @click="$emit('changeFontSize', 2)" class="py-2 rounded text-lg" :class="isDark ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'">A</button>
@@ -70,7 +70,7 @@
 
     <!-- Speed Down -->
     <button
-      @click="$emit('changeSpeed', -10)"
+      @click="$emit('changeSpeed', -SPEED_INCREMENT)"
       class="flex flex-col items-center p-2 rounded-lg"
       :class="isDark ? 'text-gray-400' : 'text-gray-600'"
     >
@@ -88,7 +88,7 @@
 
     <!-- Speed Up -->
     <button
-      @click="$emit('changeSpeed', 10)"
+      @click="$emit('changeSpeed', SPEED_INCREMENT)"
       class="flex flex-col items-center p-2 rounded-lg"
       :class="isDark ? 'text-gray-400' : 'text-gray-600'"
     >
@@ -225,6 +225,8 @@
 </template>
 
 <script setup lang="ts">
+const SPEED_INCREMENT = 5
+
 const props = defineProps<{
   width?: number
   isDark: boolean
