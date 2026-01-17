@@ -1,5 +1,56 @@
 <template>
   <div class="h-screen p-3 transition-colors duration-200" :class="isDark ? 'bg-gray-900 text-gray-100' : 'bg-gray-100 text-gray-900'">
+    <!-- Loading Modal -->
+    <Transition name="fade">
+      <div
+        v-if="isParsing"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      >
+        <div
+          class="flex flex-col gap-4 p-8 rounded-2xl shadow-2xl min-w-[320px]"
+          :class="isDark ? 'bg-gray-800' : 'bg-white'"
+        >
+          <!-- Header -->
+          <div class="flex items-center gap-3 pb-2 border-b" :class="isDark ? 'border-gray-700' : 'border-gray-200'">
+            <img :src="isDark ? '/logo-dark.png' : '/logo.png'" alt="" class="w-8 h-8" />
+            <span class="text-lg font-bold" :class="isDark ? 'text-white' : 'text-gray-800'">Carregando cifra</span>
+          </div>
+
+          <!-- Steps -->
+          <div class="flex flex-col gap-3">
+            <div
+              v-for="(step, index) in loadingSteps"
+              :key="index"
+              class="flex items-center gap-3"
+            >
+              <!-- Step indicator -->
+              <div class="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                <!-- Completed -->
+                <svg v-if="step.status === 'done'" class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <!-- Loading -->
+                <div v-else-if="step.status === 'loading'" class="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                <!-- Pending -->
+                <div v-else class="w-5 h-5 rounded-full border-2" :class="isDark ? 'border-gray-600' : 'border-gray-300'"></div>
+              </div>
+              <!-- Step text -->
+              <span
+                class="text-sm"
+                :class="[
+                  step.status === 'done' ? (isDark ? 'text-green-400' : 'text-green-600') :
+                  step.status === 'loading' ? (isDark ? 'text-white' : 'text-gray-800') :
+                  (isDark ? 'text-gray-500' : 'text-gray-400')
+                ]"
+              >
+                {{ step.text }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <div class="h-full flex flex-col rounded-xl overflow-hidden">
     <!-- Top Bar -->
     <div class="flex items-center gap-3 p-3 border-b flex-wrap transition-colors duration-200" :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300 shadow-sm'">
@@ -113,9 +164,6 @@
         @keyup.enter="loadVideo"
       />
 
-      <!-- Auto-save indicator -->
-      <span v-if="isSaving" class="text-xs text-gray-500 italic">Salvando...</span>
-      <span v-else-if="currentSong?.id" class="text-xs text-green-600">Salvo</span>
     </div>
 
     <!-- Main Content -->
@@ -300,6 +348,27 @@ const isScrolling = ref(false)
 const isDark = ref(false)
 const isParsing = ref(false)
 const isSaving = ref(false)
+
+// Loading steps for the modal
+const loadingSteps = ref([
+  { text: 'Buscando página do Cifra Club', status: 'pending' as 'pending' | 'loading' | 'done' },
+  { text: 'Extraindo título e artista', status: 'pending' as 'pending' | 'loading' | 'done' },
+  { text: 'Processando cifra', status: 'pending' as 'pending' | 'loading' | 'done' },
+  { text: 'Buscando vídeo no YouTube', status: 'pending' as 'pending' | 'loading' | 'done' },
+  { text: 'Salvando na biblioteca', status: 'pending' as 'pending' | 'loading' | 'done' }
+])
+
+const resetLoadingSteps = () => {
+  loadingSteps.value.forEach(step => step.status = 'pending')
+}
+
+const setStepLoading = (index: number) => {
+  loadingSteps.value[index].status = 'loading'
+}
+
+const setStepDone = (index: number) => {
+  loadingSteps.value[index].status = 'done'
+}
 const songs = ref<Song[]>([])
 const selectedSongId = ref<number | null>(null)
 const currentSong = ref<Song | null>(null)
@@ -663,14 +732,49 @@ const parseCifra = async () => {
   }
 
   isParsing.value = true
+  resetLoadingSteps()
+
+  // Clear current song state while loading
+  chordsContent.value = ''
+  videoId.value = ''
+  saveForm.value.title = ''
+  saveForm.value.artist = ''
+  saveForm.value.tone = ''
+  saveForm.value.capo = null
+  currentSong.value = null
+  selectedSongId.value = null
 
   try {
+    // Step 1: Fetching page
+    setStepLoading(0)
+    await new Promise(r => setTimeout(r, 100)) // Small delay to show the step
+
     const response = await $fetch('/api/parse-cifra', {
       query: { url }
     })
 
+    setStepDone(0)
+
     if (response.success && response.data) {
       const data = response.data
+
+      // Step 2: Extracting title and artist
+      setStepLoading(1)
+      await new Promise(r => setTimeout(r, 200))
+      setStepDone(1)
+
+      // Step 3: Processing cifra
+      setStepLoading(2)
+      await new Promise(r => setTimeout(r, 200))
+      setStepDone(2)
+
+      // Step 4: YouTube video (already done by API, just show it)
+      setStepLoading(3)
+      await new Promise(r => setTimeout(r, 200))
+      setStepDone(3)
+
+      // Step 5: Saving
+      setStepLoading(4)
 
       // Check if song already exists
       const existingSong = await findByTitleAndArtist(data.title, data.artist)
@@ -743,6 +847,10 @@ const parseCifra = async () => {
           videoId.value = ytUrl.split('youtu.be/')[1].split('?')[0]
         }
       }
+
+      // Mark save as done
+      setStepDone(4)
+      await new Promise(r => setTimeout(r, 300)) // Brief pause to show completion
     }
   } catch (error: any) {
     alert(`Falha ao fazer parse: ${error.message || 'Erro desconhecido'}`)
@@ -914,3 +1022,15 @@ onMounted(() => {
   })
 })
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
