@@ -255,8 +255,8 @@
         <div
           v-else
           ref="chordsDisplay"
-          @click="startEditing"
-          class="flex-1 p-5 font-mono overflow-auto cursor-text transition-colors duration-200 whitespace-pre"
+          @dblclick="startEditing"
+          class="flex-1 p-5 font-mono overflow-auto cursor-default transition-colors duration-200 whitespace-pre"
           :class="isDark ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'"
           :style="{ fontSize: fontSize + 'px', lineHeight: '1.6' }"
         >
@@ -283,11 +283,11 @@
           <span class="text-xs font-bold" :class="isDark ? 'text-gray-400' : 'text-gray-600'">Acordes ({{ detectedChords.length }})</span>
           <button @click="showChordsPanel = false" class="text-gray-500 hover:text-gray-700 text-lg leading-none">&times;</button>
         </div>
-        <div class="p-2 grid grid-cols-2 gap-2">
+        <div class="p-2 flex flex-wrap gap-2 justify-center">
           <div
             v-for="chord in detectedChords"
             :key="chord"
-            class="flex flex-col items-center"
+            class="flex flex-col items-center chord-item"
             v-html="generateChordSVG(chord, isDark)"
           >
           </div>
@@ -433,7 +433,8 @@ const handleResize = (event: MouseEvent) => {
     middlePanelWidth.value = newWidth
   } else if (resizingColumn.value === 'chords') {
     // Dragging right increases chords panel width, dragging left decreases it
-    const newWidth = Math.max(120, Math.min(400, startWidth.value + delta))
+    // Allow wider panel to fit more chord columns (each chord is ~88px with gap)
+    const newWidth = Math.max(120, Math.min(800, startWidth.value + delta))
     chordsPanelWidth.value = newWidth
   }
 }
@@ -1032,5 +1033,17 @@ onMounted(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* Fixed size chord diagrams - don't scale with column width */
+.chord-item {
+  width: 80px;
+  height: 110px;
+  flex-shrink: 0;
+}
+
+.chord-item :deep(svg) {
+  width: 80px;
+  height: 110px;
 }
 </style>
