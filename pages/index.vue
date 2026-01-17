@@ -25,13 +25,20 @@
     />
 
     <!-- Loading placeholder while detecting layout -->
-    <div v-if="!isLayoutReady" class="h-full flex items-center justify-center">
+    <div v-if="!isLayoutReady" class="h-full flex flex-col items-center justify-center gap-4">
       <div class="animate-pulse">
         <img
           :src="isDark ? '/logo-dark.png' : '/logo.png'"
           alt="Viola Flow"
           class="h-12 w-12 opacity-50"
         />
+      </div>
+      <div class="text-xs font-mono opacity-60 text-center space-y-1">
+        <div>mounted: {{ debugInfo.mounted }}</div>
+        <div>hydrated: {{ debugInfo.hydrated }}</div>
+        <div>window: {{ debugInfo.hasWindow }}</div>
+        <div>error: {{ debugInfo.error || 'none' }}</div>
+        <div class="text-[10px] opacity-40">{{ debugInfo.timestamp }}</div>
       </div>
     </div>
 
@@ -454,9 +461,23 @@ const showMobileVideo = ref(false)
 const showMobileChords = ref(false)
 const showMobileAddSong = ref(false)
 
+// Debug info for troubleshooting mobile issues
+const debugInfo = reactive({
+  mounted: false,
+  hydrated: false,
+  hasWindow: typeof window !== 'undefined',
+  error: null as string | null,
+  timestamp: new Date().toISOString()
+})
+
 const checkMobile = () => {
-  isMobile.value = window.innerWidth < 768
-  isLayoutReady.value = true
+  try {
+    isMobile.value = window.innerWidth < 768
+    isLayoutReady.value = true
+    debugInfo.hydrated = true
+  } catch (e: any) {
+    debugInfo.error = e?.message || 'checkMobile failed'
+  }
 }
 
 
@@ -579,9 +600,20 @@ watch(youtubeUrl, () => {
 
 // Load on mount
 onMounted(async () => {
+  debugInfo.mounted = true
+  debugInfo.timestamp = new Date().toISOString()
+
   // Mobile detection first to avoid layout flash
   checkMobile()
   window.addEventListener('resize', checkMobile)
+
+  // Fallback: force layout ready after 500ms in case something fails
+  setTimeout(() => {
+    if (!isLayoutReady.value) {
+      debugInfo.error = 'fallback triggered'
+      isLayoutReady.value = true
+    }
+  }, 500)
 
   loadPreferences()
   await loadSongs()

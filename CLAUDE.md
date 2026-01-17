@@ -69,6 +69,17 @@ SQLite file `viola-flow.db` in project root. Schema has single `songs` table wit
 
 App is exposed via CloudFlare Tunnel at `viola-flow.helpersbot.com.br`. Config in `~/.cloudflared/config.yml`. Vite allowed hosts configured in `nuxt.config.ts`.
 
+**Mobile testing via tunnel:** `npm run dev` does NOT work through CloudFlare Tunnel on mobile devices. The Vite dev server relies on WebSockets for JavaScript hydration, which the tunnel doesn't pass correctly. The page loads but stays stuck on the loading screen (SSR HTML only, no client-side JS).
+
+To test on mobile via tunnel, use production mode:
+```bash
+npm run build
+cp viola-flow.db .output/viola-flow.db  # Copy database to output folder
+node .output/server/index.mjs
+```
+
+Note: Changes made in production mode save to `.output/viola-flow.db`, not the root db file.
+
 ## Conventions
 
 - Portuguese for user-facing strings

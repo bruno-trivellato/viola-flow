@@ -47,6 +47,20 @@ npm run dev
 
 Acesse: http://localhost:3000
 
+### Testar no celular via CloudFlare Tunnel
+
+O modo `npm run dev` **não funciona** via CloudFlare Tunnel em dispositivos móveis. O Vite usa WebSockets para hidratar o JavaScript, e o tunnel não passa os WebSockets corretamente (a página fica travada no loading).
+
+Para testar no celular, use o modo produção:
+
+```bash
+npm run build
+cp viola-flow.db .output/viola-flow.db
+node .output/server/index.mjs
+```
+
+**Obs:** Alterações feitas em produção salvam em `.output/viola-flow.db`, não no arquivo raiz.
+
 ## Funcionalidades
 
 ### 1. Layout Principal
