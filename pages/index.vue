@@ -114,11 +114,13 @@
         <ControlsPanel
           :width="leftPanelWidth"
           :isDark="isDark"
+          :isMobile="false"
           :isScrolling="isScrolling"
           :speed="speed"
+          :fontSize="fontSize"
           :hideTabs="hideTabs"
-          @toggleScroll="toggleScroll(isEditing ? chordsTextarea : chordsDisplay)"
-          @changeSpeed="(delta) => changeSpeed(delta, isEditing ? chordsTextarea : chordsDisplay)"
+          @toggleScroll="toggleScroll(getScrollElement())"
+          @changeSpeed="(delta) => changeSpeed(delta, getScrollElement())"
           @changeFontSize="changeFontSize"
           @toggleTheme="toggleTheme"
           @update:hideTabs="hideTabs = $event"
@@ -138,40 +140,19 @@
           :class="isDark ? 'border-gray-700' : 'border-gray-300'"
           :style="middlePanelWidth ? { width: middlePanelWidth + 'px', flexShrink: 0 } : { flex: 1 }"
         >
-          <!-- Tone and Capo info -->
-          <div v-if="saveForm.tone || saveForm.capo" class="flex items-center gap-3 px-5 py-2 border-b" :class="isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'">
-            <span v-if="saveForm.tone" class="px-2 py-1 rounded text-sm font-medium" :class="isDark ? 'bg-orange-900/50 text-orange-300' : 'bg-orange-100 text-orange-700'">
-              Tom: {{ saveForm.tone }}
-            </span>
-            <span v-if="saveForm.capo" class="px-2 py-1 rounded text-sm font-medium" :class="isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700'">
-              Capo: {{ saveForm.capo }}ª casa
-            </span>
-          </div>
-
-          <!-- Edit mode -->
-          <textarea
-            v-if="isEditing"
-            ref="chordsTextarea"
-            v-model="chordsContent"
-            @blur="isEditing = false"
-            class="flex-1 p-5 font-mono resize-none focus:outline-none transition-colors duration-200"
-            :class="isDark ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'"
-            :style="{ fontSize: fontSize + 'px', lineHeight: '1.6' }"
-            placeholder="Cole a cifra aqui..."
-          ></textarea>
-
-          <!-- View mode with colored chords -->
-          <div
-            v-else
-            ref="chordsDisplay"
-            @dblclick="startEditing"
-            class="flex-1 p-5 font-mono overflow-auto cursor-default transition-colors duration-200 whitespace-pre"
-            :class="isDark ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'"
-            :style="{ fontSize: fontSize + 'px', lineHeight: '1.6' }"
-          >
-            <span v-if="!chordsContent" :class="isDark ? 'text-gray-600' : 'text-gray-400'">Clique aqui para colar a cifra...</span>
-            <span v-else v-html="colorizedChords"></span>
-          </div>
+          <CifraDisplay
+            ref="cifraDisplayDesktop"
+            v-model:content="chordsContent"
+            :colorizedContent="colorizedChords"
+            :tone="saveForm.tone"
+            :capo="saveForm.capo"
+            :fontSize="fontSize"
+            :isDark="isDark"
+            :isMobile="false"
+            :isEditing="isEditing"
+            @startEditing="startEditing"
+            @stopEditing="isEditing = false"
+          />
         </div>
 
         <!-- Resizer: Middle Panel -->
@@ -217,187 +198,38 @@
       <!-- Main Content - Mobile -->
       <div v-else class="flex-1 flex flex-col overflow-hidden relative pb-14">
         <!-- Cifra Panel (Full Screen) -->
-        <div class="flex-1 flex flex-col overflow-hidden">
-          <!-- Tone and Capo info -->
-          <div v-if="saveForm.tone || saveForm.capo" class="flex items-center gap-2 px-3 py-2 border-b" :class="isDark ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50 border-gray-200'">
-            <span v-if="saveForm.tone" class="px-2 py-1 rounded text-xs font-medium" :class="isDark ? 'bg-orange-900/50 text-orange-300' : 'bg-orange-100 text-orange-700'">
-              Tom: {{ saveForm.tone }}
-            </span>
-            <span v-if="saveForm.capo" class="px-2 py-1 rounded text-xs font-medium" :class="isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700'">
-              Capo: {{ saveForm.capo }}ª casa
-            </span>
-          </div>
+        <CifraDisplay
+          ref="cifraDisplayMobile"
+          v-model:content="chordsContent"
+          :colorizedContent="colorizedChords"
+          :tone="saveForm.tone"
+          :capo="saveForm.capo"
+          :fontSize="fontSize"
+          :isDark="isDark"
+          :isMobile="true"
+          :isEditing="isEditing"
+          @startEditing="startEditing"
+          @stopEditing="isEditing = false"
+        />
 
-          <!-- Edit mode -->
-          <textarea
-            v-if="isEditing"
-            ref="chordsTextarea"
-            v-model="chordsContent"
-            @blur="isEditing = false"
-            class="flex-1 p-3 font-mono resize-none focus:outline-none transition-colors duration-200"
-            :class="isDark ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'"
-            :style="{ fontSize: fontSize + 'px', lineHeight: '1.5' }"
-            placeholder="Cole a cifra aqui..."
-          ></textarea>
-
-          <!-- View mode with colored chords -->
-          <div
-            v-else
-            ref="chordsDisplay"
-            @dblclick="startEditing"
-            class="flex-1 p-3 font-mono overflow-auto cursor-default transition-colors duration-200 whitespace-pre"
-            :class="isDark ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'"
-            :style="{ fontSize: fontSize + 'px', lineHeight: '1.5' }"
-          >
-            <span v-if="!chordsContent" :class="isDark ? 'text-gray-600' : 'text-gray-400'">Toque para colar a cifra...</span>
-            <span v-else v-html="colorizedChords"></span>
-          </div>
-        </div>
-
-        <!-- Mobile Bottom Controls Bar (Fixed) -->
-        <div class="fixed bottom-0 left-0 right-0 flex items-center justify-around p-2 border-t z-40" :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'">
-          <!-- Play/Pause Scroll -->
-          <button
-            @click="toggleScroll(isEditing ? chordsTextarea : chordsDisplay)"
-            class="flex flex-col items-center p-2 rounded-lg"
-            :class="isScrolling ? 'text-green-500' : (isDark ? 'text-gray-400' : 'text-gray-600')"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path v-if="isScrolling" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span class="text-xs mt-1">{{ isScrolling ? 'Parar' : 'Scroll' }}</span>
-          </button>
-
-          <!-- Speed Down -->
-          <button
-            @click="changeSpeed(-0.5, isEditing ? chordsTextarea : chordsDisplay)"
-            class="flex flex-col items-center p-2 rounded-lg"
-            :class="isDark ? 'text-gray-400' : 'text-gray-600'"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            <span class="text-xs mt-1">Lento</span>
-          </button>
-
-          <!-- Speed indicator -->
-          <div class="flex flex-col items-center p-2">
-            <span class="text-sm font-bold" :class="isDark ? 'text-white' : 'text-gray-800'">{{ speed.toFixed(1) }}x</span>
-            <span class="text-xs mt-1" :class="isDark ? 'text-gray-400' : 'text-gray-600'">Veloc.</span>
-          </div>
-
-          <!-- Speed Up -->
-          <button
-            @click="changeSpeed(0.5, isEditing ? chordsTextarea : chordsDisplay)"
-            class="flex flex-col items-center p-2 rounded-lg"
-            :class="isDark ? 'text-gray-400' : 'text-gray-600'"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-            <span class="text-xs mt-1">Rápido</span>
-          </button>
-
-          <!-- Chords -->
-          <button
-            @click="showMobileChords = true"
-            class="flex flex-col items-center p-2 rounded-lg"
-            :class="isDark ? 'text-gray-400' : 'text-gray-600'"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-            </svg>
-            <span class="text-xs mt-1">Acordes</span>
-          </button>
-
-          <!-- YouTube external link -->
-          <a
-            v-if="videoId"
-            :href="`https://www.youtube.com/watch?v=${videoId}`"
-            target="_blank"
-            class="flex flex-col items-center p-2 rounded-lg text-red-500"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-            </svg>
-            <span class="text-xs mt-1">YouTube</span>
-          </a>
-
-          <!-- More menu (...) -->
-          <button
-            @click="showMobileMenu = !showMobileMenu"
-            class="flex flex-col items-center p-2 rounded-lg relative"
-            :class="isDark ? 'text-gray-400' : 'text-gray-600'"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
-            </svg>
-            <span class="text-xs mt-1">Mais</span>
-          </button>
-        </div>
-
-        <!-- Mobile More Menu (popup above bar) -->
-        <div
-          v-if="showMobileMenu"
-          class="fixed bottom-16 right-2 rounded-lg shadow-xl border z-50 py-1 min-w-[140px]"
-          :class="isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
-        >
-          <!-- Font Size -->
-          <div class="px-3 py-2 border-b" :class="isDark ? 'border-gray-700' : 'border-gray-100'">
-            <span class="text-xs font-medium" :class="isDark ? 'text-gray-400' : 'text-gray-500'">Tamanho da fonte</span>
-            <div class="flex items-center justify-between mt-1">
-              <button
-                @click="changeFontSize(-2)"
-                class="p-1 rounded"
-                :class="isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'"
-              >
-                <span class="text-lg font-bold" :class="isDark ? 'text-white' : 'text-gray-800'">A-</span>
-              </button>
-              <span class="text-sm" :class="isDark ? 'text-gray-300' : 'text-gray-600'">{{ fontSize }}px</span>
-              <button
-                @click="changeFontSize(2)"
-                class="p-1 rounded"
-                :class="isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'"
-              >
-                <span class="text-lg font-bold" :class="isDark ? 'text-white' : 'text-gray-800'">A+</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Theme toggle -->
-          <button
-            @click="toggleTheme(); showMobileMenu = false"
-            class="w-full flex items-center gap-3 px-3 py-2"
-            :class="isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" :class="isDark ? 'text-gray-400' : 'text-gray-600'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path v-if="isDark" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
-            <span :class="isDark ? 'text-white' : 'text-gray-800'">{{ isDark ? 'Modo claro' : 'Modo escuro' }}</span>
-          </button>
-
-          <!-- Mini player toggle -->
-          <button
-            v-if="videoId"
-            @click="showMobileVideo = !showMobileVideo; showMobileMenu = false"
-            class="w-full flex items-center gap-3 px-3 py-2"
-            :class="isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" :class="showMobileVideo ? 'text-blue-500' : (isDark ? 'text-gray-400' : 'text-gray-600')" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            <span :class="isDark ? 'text-white' : 'text-gray-800'">{{ showMobileVideo ? 'Esconder mini' : 'Mostrar mini' }}</span>
-          </button>
-        </div>
-
-        <!-- Backdrop for menu -->
-        <div
-          v-if="showMobileMenu"
-          class="fixed inset-0 z-40"
-          @click="showMobileMenu = false"
-        ></div>
+        <!-- Mobile Controls Panel -->
+        <ControlsPanel
+          :isDark="isDark"
+          :isMobile="true"
+          :isScrolling="isScrolling"
+          :speed="speed"
+          :fontSize="fontSize"
+          :hideTabs="hideTabs"
+          :videoId="videoId"
+          :showMiniPlayer="showMobileVideo"
+          @toggleScroll="toggleScroll(getScrollElement())"
+          @changeSpeed="(delta) => changeSpeed(delta, getScrollElement())"
+          @changeFontSize="changeFontSize"
+          @toggleTheme="toggleTheme"
+          @update:hideTabs="hideTabs = $event"
+          @showChords="showMobileChords = true"
+          @toggleMiniPlayer="showMobileVideo = !showMobileVideo"
+        />
 
         <!-- Mobile Mini Video Player (PiP style) -->
         <div
@@ -564,12 +396,12 @@ const {
   updateSong
 } = useSongManager()
 
-// Auto Scroll
+// Auto Scroll (pass speed from song manager so they share the same ref)
 const {
   isScrolling,
   toggleScroll,
   changeSpeed
-} = useAutoScroll()
+} = useAutoScroll(speed)
 
 // Panel Resize
 const { middlePanel, startResize } = usePanelResize(leftPanelWidth, middlePanelWidth, chordsPanelWidth)
@@ -593,17 +425,24 @@ const {
 const videoId = ref('')
 const isEditing = ref(false)
 const showChordsPanel = ref(true)
-const chordsTextarea = ref<HTMLTextAreaElement | null>(null)
-const chordsDisplay = ref<HTMLDivElement | null>(null)
 const mainContainer = ref<HTMLDivElement | null>(null)
+
+// CifraDisplay component refs
+const cifraDisplayDesktop = ref<{ textareaRef: HTMLTextAreaElement | null, displayRef: HTMLDivElement | null } | null>(null)
+const cifraDisplayMobile = ref<{ textareaRef: HTMLTextAreaElement | null, displayRef: HTMLDivElement | null } | null>(null)
+
+// Get the active scroll element from the appropriate CifraDisplay component
+const getScrollElement = () => {
+  const component = isMobile.value ? cifraDisplayMobile.value : cifraDisplayDesktop.value
+  if (!component) return null
+  return isEditing.value ? component.textareaRef : component.displayRef
+}
 
 // Mobile detection
 const isMobile = ref(false)
 const showMobileVideo = ref(false)
-const showMobileControls = ref(false)
 const showMobileChords = ref(false)
 const showMobileAddSong = ref(false)
-const showMobileMenu = ref(false)
 
 const checkMobile = () => {
   isMobile.value = window.innerWidth < 768
@@ -693,7 +532,8 @@ const colorizedChords = computed(() => {
 const startEditing = () => {
   isEditing.value = true
   nextTick(() => {
-    chordsTextarea.value?.focus()
+    const component = isMobile.value ? cifraDisplayMobile.value : cifraDisplayDesktop.value
+    component?.textareaRef?.focus()
   })
 }
 
@@ -744,7 +584,7 @@ onMounted(async () => {
   window.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.code === 'Space') {
       e.preventDefault()
-      toggleScroll(isEditing.value ? chordsTextarea.value : chordsDisplay.value)
+      toggleScroll(getScrollElement())
     }
   })
 })

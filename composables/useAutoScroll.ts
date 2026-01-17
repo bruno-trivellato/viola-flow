@@ -1,7 +1,8 @@
 // Composable for managing auto-scroll functionality
-export const useAutoScroll = () => {
+export const useAutoScroll = (externalSpeed?: Ref<number>) => {
   const isScrolling = ref(false)
-  const speed = ref(30)
+  // Use external speed if provided, otherwise use local speed
+  const speed = externalSpeed ?? ref(30)
 
   let scrollInterval: ReturnType<typeof setInterval> | null = null
   let currentScrollElement: HTMLElement | null = null
@@ -57,7 +58,6 @@ export const useAutoScroll = () => {
 
   return {
     isScrolling,
-    speed,
     startScroll,
     stopScroll,
     toggleScroll,
