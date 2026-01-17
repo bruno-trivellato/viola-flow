@@ -13,5 +13,10 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/png', href: '/favicon.png' }
       ]
     }
+  },
+  vite: {
+    server: {
+      allowedHosts: ['viola-flow.helpersbot.com.br']
+    }
   }
 })

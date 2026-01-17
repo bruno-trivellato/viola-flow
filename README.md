@@ -9,7 +9,7 @@ App web para tocar cifras com autoscroll e vídeo do YouTube lado a lado.
 
 - **Nuxt 3** (Vue 3)
 - **Tailwind CSS** - estilização
-- **Dexie.js** - banco de dados local (IndexedDB)
+- **SQLite** (better-sqlite3) - banco de dados no servidor
 
 ## Estrutura do Projeto
 
@@ -18,11 +18,21 @@ cifra-bruno-app/
 ├── pages/
 │   └── index.vue              # Página principal com todo o app
 ├── composables/
-│   ├── useDatabase.ts         # CRUD do banco de dados (Dexie/IndexedDB)
+│   ├── useDatabase.ts         # Cliente API para CRUD de músicas
 │   └── useChordDiagram.ts     # Diagramas de acordes em SVG
 ├── server/
-│   └── api/
-│       └── parse-cifra.ts     # API para fazer scraping do CifraClub
+│   ├── api/
+│   │   ├── parse-cifra.ts     # API para fazer scraping do CifraClub
+│   │   └── songs/             # APIs REST para CRUD de músicas
+│   │       ├── index.get.ts   # GET /api/songs - listar todas
+│   │       ├── index.post.ts  # POST /api/songs - criar
+│   │       ├── [id].get.ts    # GET /api/songs/:id - buscar por ID
+│   │       ├── [id].put.ts    # PUT /api/songs/:id - atualizar
+│   │       ├── [id].delete.ts # DELETE /api/songs/:id - deletar
+│   │       └── find.get.ts    # GET /api/songs/find - buscar por título/artista
+│   └── utils/
+│       └── database.ts        # Conexão e schema do SQLite
+├── viola-flow.db              # Banco de dados SQLite
 ├── nuxt.config.ts
 ├── tailwind.config.js
 └── package.json
@@ -92,7 +102,12 @@ Acesse: http://localhost:3000
 - Se já existir música com mesmo título+artista, pergunta se quer atualizar ou carregar a versão salva
 - Indicador visual: "Salvando..." / "Salvo"
 
-### 9. Banco de Dados Local (IndexedDB)
+### 9. Banco de Dados SQLite (Server-side)
+- **Persistência no servidor**: banco SQLite local (`viola-flow.db`) em vez de IndexedDB no navegador
+- **Compartilhado entre dispositivos**: acesse do PC ou celular e veja as mesmas músicas
+- **APIs REST**: endpoints em `/api/songs/*` para CRUD completo
+- **better-sqlite3**: biblioteca performante com prepared statements
+
 Estrutura de cada música:
 ```typescript
 interface Song {
@@ -107,8 +122,8 @@ interface Song {
   speed: number           // Velocidade do scroll salva
   fontSize: number        // Tamanho da fonte salvo
   hideTabs?: boolean      // Esconder tablaturas
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 }
 ```
 
@@ -122,9 +137,15 @@ Contém toda a lógica do app:
 - Auto-save com debounce
 
 ### `composables/useDatabase.ts`
-CRUD completo com Dexie:
+Cliente para APIs REST de músicas:
 - `getAllSongs()`, `getSong(id)`, `createSong()`, `updateSong()`, `deleteSong()`
 - `searchSongs()`, `findByTitleAndArtist()`
+
+### `server/utils/database.ts`
+Configuração do SQLite com better-sqlite3:
+- Schema da tabela `songs`
+- Prepared statements para performance
+- Funções de CRUD usadas pelas APIs
 
 ### `composables/useChordDiagram.ts`
 Diagramas de acordes:

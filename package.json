@@ -10,9 +10,10 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "dexie": "^4.0.0",
     "nuxt": "^3.14.0",
-    "vue": "^3.5.0",
-    "dexie": "^4.0.0"
+    "vue": "^3.5.0"
   },
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.12.0"
