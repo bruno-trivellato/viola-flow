@@ -27,7 +27,7 @@ npm run build    # Build for production
 
 ```
 pages/
-└── index.vue                 # Main page, orchestrates components (~400 lines)
+└── index.vue                 # Main page, orchestrates components (~600 lines)
 
 components/
 ├── LoadingModal.vue          # Cifra parsing progress modal
@@ -35,6 +35,7 @@ components/
 ├── SongSelector.vue          # Dropdown with search for song selection
 ├── ControlsPanel.vue         # Left panel: play/stop, speed, font, theme
 ├── ChordsPanel.vue           # Detected chords display with diagrams
+├── CifraDisplay.vue          # Chord sheet viewer with colorized chords (edit/view modes)
 └── SettingsMenu.vue          # Gear icon dropdown menu
 
 composables/
@@ -54,7 +55,8 @@ server/
 │       ├── index.post.ts
 │       ├── [id].get.ts
 │       ├── [id].put.ts
-│       └── [id].delete.ts
+│       ├── [id].delete.ts
+│       └── find.get.ts       # Find song by title and artist
 └── utils/
     └── database.ts           # SQLite schema and prepared statements
 ```
