@@ -2,6 +2,9 @@
 
 App web para tocar cifras com autoscroll e vídeo do YouTube lado a lado.
 
+<img width="1860" height="875" alt="image" src="https://github.com/user-attachments/assets/74e71746-19bb-4007-b344-5ff71682112e" />
+
+
 ## Stack
 
 - **Nuxt 3** (Vue 3)
