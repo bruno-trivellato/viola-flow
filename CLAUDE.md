@@ -23,12 +23,41 @@ npm run build    # Build for production
 5. Chords are colorized client-side with regex in `pages/index.vue`
 6. Chord diagrams generated from `composables/useChordDiagram.ts` (100+ chord shapes)
 
-### Key Files
+### Project Structure
 
-- **`pages/index.vue`** - Single-page app with all UI logic, state management, autoscroll, auto-save (1s debounce)
-- **`server/utils/database.ts`** - SQLite schema and prepared statements (better-sqlite3)
-- **`server/api/songs/`** - REST endpoints following Nuxt file-based routing (`[id].get.ts`, `index.post.ts`, etc.)
-- **`composables/useChordDiagram.ts`** - SVG chord diagram generator with finger positions database
+```
+pages/
+└── index.vue                 # Main page, orchestrates components (~400 lines)
+
+components/
+├── LoadingModal.vue          # Cifra parsing progress modal
+├── ImportModal.vue           # Batch import interface with table
+├── SongSelector.vue          # Dropdown with search for song selection
+├── ControlsPanel.vue         # Left panel: play/stop, speed, font, theme
+├── ChordsPanel.vue           # Detected chords display with diagrams
+└── SettingsMenu.vue          # Gear icon dropdown menu
+
+composables/
+├── useDatabase.ts            # API client for songs CRUD
+├── useChordDiagram.ts        # SVG chord diagram generator (100+ shapes)
+├── useSongManager.ts         # Song state, auto-save, parse logic
+├── useImportBatch.ts         # Batch import from CifraClub
+├── useUIPreferences.ts       # Theme and panel sizes (localStorage)
+├── useAutoScroll.ts          # Autoscroll functionality
+└── usePanelResize.ts         # Drag-to-resize panels
+
+server/
+├── api/
+│   ├── parse-cifra.ts        # Scrapes CifraClub pages
+│   └── songs/                # REST endpoints (Nuxt file-based routing)
+│       ├── index.get.ts
+│       ├── index.post.ts
+│       ├── [id].get.ts
+│       ├── [id].put.ts
+│       └── [id].delete.ts
+└── utils/
+    └── database.ts           # SQLite schema and prepared statements
+```
 
 ### Database
 
@@ -44,3 +73,5 @@ App is exposed via CloudFlare Tunnel at `viola-flow.helpersbot.com.br`. Config i
 - Tailwind for all styling, supports dark/light themes via `isDark` ref
 - State managed with Vue 3 Composition API (`ref`, `computed`, `watch`)
 - Auto-save triggers on content changes with 1s debounce
+- Components receive props and emit events (no direct state mutation)
+- Composables encapsulate reusable logic and state
