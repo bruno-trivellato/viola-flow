@@ -25,21 +25,12 @@
     />
 
     <!-- Loading placeholder while detecting layout -->
-    <div v-if="!isLayoutReady" class="h-full flex flex-col items-center justify-center gap-4">
-      <div class="animate-pulse">
-        <img
-          :src="isDark ? '/logo-dark.png' : '/logo.png'"
-          alt="Viola Flow"
-          class="h-12 w-12 opacity-50"
-        />
-      </div>
-      <div class="text-xs font-mono opacity-60 text-center space-y-1">
-        <div>mounted: {{ debugInfo.mounted }}</div>
-        <div>hydrated: {{ debugInfo.hydrated }}</div>
-        <div>window: {{ debugInfo.hasWindow }}</div>
-        <div>error: {{ debugInfo.error || 'none' }}</div>
-        <div class="text-[10px] opacity-40">{{ debugInfo.timestamp }}</div>
-      </div>
+    <div v-if="!isLayoutReady" class="h-full flex items-center justify-center">
+      <img
+        :src="isDark ? '/logo-dark.png' : '/logo.png'"
+        alt="Viola Flow"
+        class="h-12 w-12 animate-pulse-scale"
+      />
     </div>
 
     <div v-else class="h-full flex flex-col rounded-xl overflow-hidden">
@@ -62,7 +53,7 @@
           :songs="songs"
           :selectedId="selectedSongId"
           :isDark="isDark"
-          @select="selectSong"
+          @select="handleSelectSong"
           @delete="deleteSongById"
         />
 
@@ -106,7 +97,7 @@
             :songs="songs"
             :selectedId="selectedSongId"
             :isDark="isDark"
-            @select="selectSong"
+            @select="handleSelectSong"
             @delete="deleteSongById"
           />
         </div>
@@ -454,6 +445,18 @@ const getScrollElement = () => {
   return isEditing.value ? component.textareaRef : component.displayRef
 }
 
+// Reset scroll position to top
+const resetScroll = () => {
+  const el = getScrollElement()
+  if (el) el.scrollTop = 0
+}
+
+// Wrapper for selectSong that also resets scroll
+const handleSelectSong = async (id: number | null) => {
+  await selectSong(id)
+  nextTick(() => resetScroll())
+}
+
 // Mobile detection
 const isMobile = ref(false)
 const isLayoutReady = ref(false)
@@ -598,6 +601,13 @@ watch(youtubeUrl, () => {
   }
 })
 
+// Reset scroll when parsing completes
+watch(isParsing, (parsing, wasParsing) => {
+  if (wasParsing && !parsing) {
+    nextTick(() => resetScroll())
+  }
+})
+
 // Load on mount
 onMounted(async () => {
   debugInfo.mounted = true
@@ -620,7 +630,7 @@ onMounted(async () => {
 
   const lastSongId = getLastSongId()
   if (lastSongId && songs.value.some(s => s.id === lastSongId)) {
-    selectSong(lastSongId)
+    handleSelectSong(lastSongId)
   }
 
   // Keyboard shortcut
@@ -638,6 +648,22 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Loading animation - pulse with subtle scale */
+.animate-pulse-scale {
+  animation: pulse-scale 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-scale {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;

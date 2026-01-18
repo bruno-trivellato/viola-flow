@@ -18,5 +18,15 @@ export default defineNuxtConfig({
     server: {
       allowedHosts: ['viola-flow.helpersbot.com.br']
     }
+  },
+  router: {
+    options: {
+      strict: false
+    }
+  },
+  nitro: {
+    routeRules: {
+      '/_nuxt/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } }
+    }
   }
 })

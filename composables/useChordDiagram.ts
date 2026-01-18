@@ -119,6 +119,7 @@ const chordDatabase: Record<string, ChordPosition> = {
 
   // 4 chords (sus4 alternative notation)
   'A4': { frets: ['x', 0, 2, 2, 3, 0], fingers: [0, 0, 1, 2, 3, 0] },
+  'B4': { frets: ['x', 2, 4, 4, 5, 2], fingers: [0, 1, 2, 3, 4, 1], barres: [{ fret: 2, fromString: 1, toString: 5 }] },
   'D4': { frets: ['x', 'x', 0, 2, 3, 3], fingers: [0, 0, 0, 1, 2, 3] },
   'E4': { frets: [0, 2, 2, 2, 0, 0], fingers: [0, 2, 3, 4, 0, 0] },
   'G4': { frets: [3, 3, 0, 0, 1, 3], fingers: [2, 3, 0, 0, 1, 4] },
